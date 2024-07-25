@@ -1,0 +1,195 @@
+설정 서버 구성
+1
+mkdir c:\db2\data\config0-0
+mkdir c:\db2\data\config0-1
+mkdir c:\db2\data\config0-2
+
+2 각 창에 명령어를 하나씩 실행해야 함. 
+mongod --configsvr --replSet config0 --port 27018 --bind_ip 0.0.0.0 --dbpath /db2/data/config0-0 
+mongod --configsvr --replSet config0 --port 27019 --bind_ip 0.0.0.0 --dbpath /db2/data/config0-1
+mongod --configsvr --replSet config0 --port 27020 --bind_ip 0.0.0.0 --dbpath /db2/data/config0-2
+
+3
+mongo --port 27018
+
+4
+rs.initiate(
+{
+_id : "config0",
+configsvr:true,
+members: [
+{_id:0, host:"10.100.201.29:27018"},
+{_id:1, host:"10.100.201.29:27019"},
+{_id:2, host:"10.100.201.29:27020"}
+]
+}
+)
+
+
+샤드 구성1
+1
+mkdir c:\db2\data\shard0-0
+mkdir c:\db2\data\shard0-1
+mkdir c:\db2\data\shard0-2
+
+2 각 창에 명령어를 하나씩 실행해야 함. 
+mongod --shardsvr --replSet shard0 --port 27021 --bind_ip localhost --dbpath /db2/data/shard0-0 
+mongod --shardsvr --replSet shard0 --port 27022 --bind_ip localhost --dbpath /db2/data/shard0-1
+mongod --shardsvr --replSet shard0 --port 27023 --bind_ip localhost --dbpath /db2/data/shard0-2
+
+3
+mongo --port 27021
+
+4
+rs.initiate(
+{
+_id : "shard0",
+members: [
+{_id:0, host:"localhost:27021"},
+{_id:1, host:"localhost:27022"},
+{_id:2, host:"localhost:27023",arbiterOnly: true}
+]
+}
+)
+
+샤드 구성2
+1
+mkdir c:\db2\data\shard1-0
+mkdir c:\db2\data\shard1-1
+mkdir c:\db2\data\shard1-2
+
+2 각 창에 명령어를 하나씩 실행해야 함. 
+mongod --shardsvr --replSet shard1 --port 27031 --bind_ip localhost --dbpath /db2/data/shard1-0
+mongod --shardsvr --replSet shard1 --port 27032 --bind_ip localhost --dbpath /db2/data/shard1-1
+mongod --shardsvr --replSet shard1 --port 27033 --bind_ip localhost --dbpath /db2/data/shard1-2
+
+3
+mongo --port 27031
+
+4
+rs.initiate(
+{
+_id : "shard1",
+members: [
+{_id:0, host:"localhost:27031"},
+{_id:1, host:"localhost:27032"},
+{_id:2, host:"localhost:27033",arbiterOnly: true}
+]
+}
+)
+
+샤드 구성3
+1
+mkdir c:\db2\data\shard2-0
+mkdir c:\db2\data\shard2-1
+mkdir c:\db2\data\shard2-2
+
+2 각 창에 명령어를 하나씩 실행해야 함. 
+mongod --shardsvr --replSet shard2 --port 27041 --bind_ip localhost --dbpath /db2/data/shard2-0
+mongod --shardsvr --replSet shard2 --port 27042 --bind_ip localhost --dbpath /db2/data/shard2-1
+mongod --shardsvr --replSet shard2 --port 27043 --bind_ip localhost --dbpath /db2/data/shard2-2
+
+3
+mongo --port 27041
+
+4
+rs.initiate(
+{
+_id : "shard2",
+members: [
+{_id:0, host:"localhost:27041"},
+{_id:1, host:"localhost:27042"},
+{_id:2, host:"localhost:27043",arbiterOnly: true}
+]
+}
+)
+
+설정 참고 
+security:
+  keyFile : C:\Program Files\MongoDB\Server\4.4\keyFile.key
+  clusterAuthMode : keyFile
+  authorization : enabled 
+replication :
+  replSetName : rs0
+
+
+
+클라이언트에서 연결 
+
+mongos 설정하기. 
+
+
+mongos --configdb config0/10.100.201.29 --port 20000
+
+mongos --configdb it0/10.100.201.45 --port 20000
+mongos --configdb config0/10.100.201.52 --port 20000
+
+
+
+mongo shell 접속 
+mongo --port 20000 
+mongo --port 20000 -u fred -p 1234
+
+
+use admin
+db.grantRolesToUser("fred", ["clusterAdmin"])
+
+use test2345
+db.createUser(
+  {
+    user: "fred",
+    pwd: "1234",
+    roles: [ { role: "readWrite", db: "test2345" } ]
+  }
+)
+
+
+
+sh.addShard("it0/10.100.201.26")
+sh.addShard("it1/10.100.201.21")
+sh.addShard("it2/10.100.201.52")
+
+use config
+db.shards.find()
+use config
+
+sh.enableSharding("test2345")
+db.test.createIndex({x:1})
+
+use admin 
+
+sh.shardCollection("test2345.test",{
+x:"hashed"
+})
+
+use test2345
+
+for(var i = 1; i<10001; i++){
+db.test.insertOne({x:i,ename:i,sal:100})
+}
+
+db.test.getShardDistribution()
+
+shard0 ::
+ mongo --port 27021
+use test2345
+db.test.count()
+shard1 :: 
+mongo --port 27031
+use test2345
+db.test.count()
+
+shard2 :: 
+mongo --port 27041
+use test2345
+db.test.count()
+
+결과 확인. 
+컴파스로 20000 접속시 개수 10000개 
+컴파스로 27021 접속시 개수 3468개 조회  
+해당, 
+샤드 서버 접속 후 조회. 
+shard0:PRIMARY> use test2345
+switched to db test2345
+shard0:PRIMARY> db.test.count()
+3468
