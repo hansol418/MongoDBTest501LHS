@@ -33,9 +33,9 @@ mkdir c:\db2\data\shard0-1
 mkdir c:\db2\data\shard0-2
 
 2 각 창에 명령어를 하나씩 실행해야 함. 
-mongod --shardsvr --replSet shard0 --port 27021 --bind_ip localhost --dbpath /db2/data/shard0-0 
-mongod --shardsvr --replSet shard0 --port 27022 --bind_ip localhost --dbpath /db2/data/shard0-1
-mongod --shardsvr --replSet shard0 --port 27023 --bind_ip localhost --dbpath /db2/data/shard0-2
+mongod --shardsvr --replSet shard0 --port 27021 --bind_ip 0.0.0.0 --dbpath /db2/data/shard0-0 
+mongod --shardsvr --replSet shard0 --port 27022 --bind_ip 0.0.0.0 --dbpath /db2/data/shard0-1
+mongod --shardsvr --replSet shard0 --port 27023 --bind_ip 0.0.0.0 --dbpath /db2/data/shard0-2
 
 3
 mongo --port 27021
@@ -45,9 +45,9 @@ rs.initiate(
 {
 _id : "shard0",
 members: [
-{_id:0, host:"localhost:27021"},
-{_id:1, host:"localhost:27022"},
-{_id:2, host:"localhost:27023",arbiterOnly: true}
+{_id:0, host:"10.100.201.29:27021"},
+{_id:1, host:"10.100.201.29:27022"},
+{_id:2, host:"10.100.201.29",arbiterOnly: true}
 ]
 }
 )
@@ -59,9 +59,9 @@ mkdir c:\db2\data\shard1-1
 mkdir c:\db2\data\shard1-2
 
 2 각 창에 명령어를 하나씩 실행해야 함. 
-mongod --shardsvr --replSet shard1 --port 27031 --bind_ip localhost --dbpath /db2/data/shard1-0
-mongod --shardsvr --replSet shard1 --port 27032 --bind_ip localhost --dbpath /db2/data/shard1-1
-mongod --shardsvr --replSet shard1 --port 27033 --bind_ip localhost --dbpath /db2/data/shard1-2
+mongod --shardsvr --replSet shard1 --port 27031 --bind_ip 0.0.0.0 --dbpath /db2/data/shard1-0
+mongod --shardsvr --replSet shard1 --port 27032 --bind_ip 0.0.0.0 --dbpath /db2/data/shard1-1
+mongod --shardsvr --replSet shard1 --port 27033 --bind_ip 0.0.0.0 --dbpath /db2/data/shard1-2
 
 3
 mongo --port 27031
@@ -71,9 +71,9 @@ rs.initiate(
 {
 _id : "shard1",
 members: [
-{_id:0, host:"localhost:27031"},
-{_id:1, host:"localhost:27032"},
-{_id:2, host:"localhost:27033",arbiterOnly: true}
+{_id:0, host:"10.100.201.29:27031"},
+{_id:1, host:"10.100.201.29:27032"},
+{_id:2, host:"10.100.201.29:27033",arbiterOnly: true}
 ]
 }
 )
@@ -85,9 +85,9 @@ mkdir c:\db2\data\shard2-1
 mkdir c:\db2\data\shard2-2
 
 2 각 창에 명령어를 하나씩 실행해야 함. 
-mongod --shardsvr --replSet shard2 --port 27041 --bind_ip localhost --dbpath /db2/data/shard2-0
-mongod --shardsvr --replSet shard2 --port 27042 --bind_ip localhost --dbpath /db2/data/shard2-1
-mongod --shardsvr --replSet shard2 --port 27043 --bind_ip localhost --dbpath /db2/data/shard2-2
+mongod --shardsvr --replSet shard2 --port 27041 --bind_ip 0.0.0.0 --dbpath /db2/data/shard2-0
+mongod --shardsvr --replSet shard2 --port 27042 --bind_ip 0.0.0.0 --dbpath /db2/data/shard2-1
+mongod --shardsvr --replSet shard2 --port 27043 --bind_ip 0.0.0.0 --dbpath /db2/data/shard2-2
 
 3
 mongo --port 27041
